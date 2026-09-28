@@ -25,7 +25,7 @@ stages:
               command: 'init'
               workingDirectory: '$(System.DefaultWorkingDirectory)/environments/dev'
               backendServiceArm: 'sc-azure-terraform'
-              backendAzureRmStorageAccountName: 'stgsinha'
+              backendAzureRmStorageAccountName: 'storegoyal1121'
               backendAzureRmContainerName: 'contstore'
               backendAzureRmKey: 'microservice-infra-dev.tfstate'
 
