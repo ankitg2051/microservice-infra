@@ -34,8 +34,9 @@ stages:
               provider: 'azurerm'
               command: 'custom'
               workingDirectory: '$(System.DefaultWorkingDirectory)/environments/dev'
+              commandOptions: '-check -recursive'
               outputTo: 'console'
-              customCommand: 'terraform fmt -check -recursive'
+              customCommand: 'fmt'
               environmentServiceNameAzureRM: 'sc-azure-terraform'
 
           - task: TerraformTask@5
