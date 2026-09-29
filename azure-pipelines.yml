@@ -3,6 +3,9 @@ trigger:
     include:
       - feature
 
+# Disable PR validation for Feature CI
+pr: none
+
 # Use our self-hosted Windows agent
 pool:
   name: sep-agent
