@@ -1,0 +1,36 @@
+# Use our self-hosted Windows agent
+pool:
+  name: sep-agent
+
+stages:
+  - stage: PR_Validation
+    displayName: "PR Validation"
+
+    jobs:
+      - job: pr_job
+        displayName: "Terraform PR Checks"
+
+        steps:
+          - task: TerraformInstaller@1
+            displayName: "Terraform Install"
+            inputs:
+              terraformVersion: '1.11.4'
+
+          - task: TerraformTask@5
+            displayName: "Terraform Init"
+            inputs:
+              provider: 'azurerm'
+              command: 'init'
+              workingDirectory: '$(System.DefaultWorkingDirectory)/environments/dev'
+              backendServiceArm: 'sc-azure-terraform'
+              backendAzureRmStorageAccountName: 'storegoyal1121'
+              backendAzureRmContainerName: 'contstore'
+              backendAzureRmKey: 'microservice-infra-dev.tfstate'
+
+          - task: TerraformTask@5
+            displayName: "Terraform Plan"
+            inputs:
+              provider: 'azurerm'
+              command: 'plan'
+              workingDirectory: '$(System.DefaultWorkingDirectory)/environments/dev'
+              environmentServiceNameAzureRM: 'sc-azure-terraform'
