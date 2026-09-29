@@ -37,6 +37,8 @@ stages:
               workingDirectory: '$(System.DefaultWorkingDirectory)/environments/dev'
           
           - task: TerraformTask@5
+
+          - task: TerraformTask@5
             displayName: "Terraform Plan"
             inputs:
               provider: 'azurerm'
