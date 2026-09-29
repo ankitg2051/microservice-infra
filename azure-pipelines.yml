@@ -28,16 +28,6 @@ stages:
               backendAzureRmStorageAccountName: 'storegoyal1121'
               backendAzureRmContainerName: 'contstore'
               backendAzureRmKey: 'microservice-infra-dev.tfstate'
-          - task: TerraformTask@5
-            displayName: terraform_fmt
-            inputs:
-              provider: 'azurerm'
-              command: 'custom'
-              workingDirectory: '$(System.DefaultWorkingDirectory)'
-              commandOptions: '-check -recursive'
-              outputTo: 'console'
-              customCommand: 'fmt'
-              environmentServiceNameAzureRM: 'sc-azure-terraform'
 
           - task: TerraformTask@5
             displayName: terraform_validate
@@ -46,8 +36,6 @@ stages:
               command: 'validate'
               workingDirectory: '$(System.DefaultWorkingDirectory)/environments/dev'
           
-          - task: TerraformTask@5
-
           - task: TerraformTask@5
             displayName: "Terraform Plan"
             inputs:
