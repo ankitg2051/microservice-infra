@@ -29,6 +29,7 @@ stages:
               backendAzureRmContainerName: 'contstore'
               backendAzureRmKey: 'microservice-infra-dev.tfstate'
           - task: TerraformTask@5
+            displayName: terraform_fmt
             inputs:
               provider: 'azurerm'
               command: 'custom'
@@ -38,6 +39,7 @@ stages:
               environmentServiceNameAzureRM: 'sc-azure-terraform'
 
           - task: TerraformTask@5
+            displayName: terraform_validate
             inputs:
               provider: 'azurerm'
               command: 'validate'
