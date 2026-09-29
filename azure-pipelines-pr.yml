@@ -1,17 +1,24 @@
-trigger:
+# Use our self-hosted Windows agent
+# Do not run on normal pushes
+trigger: none
+
+# Run when PR targets main
+pr:
   branches:
     include:
-      - feature
+      - main
 
-# Use our self-hosted Windows agent
 pool:
   name: sep-agent
 
 stages:
-  - stage: CI
+  - stage: PR_Validation
+    displayName: "PR Validation"
+
     jobs:
-      - job: feature_job
-        displayName: "Feature CI"
+      - job: pr_job
+        displayName: "Terraform PR Checks"
+
         steps:
           - task: TerraformInstaller@1
             displayName: "Terraform Install"
@@ -28,25 +35,6 @@ stages:
               backendAzureRmStorageAccountName: 'storegoyal1121'
               backendAzureRmContainerName: 'contstore'
               backendAzureRmKey: 'microservice-infra-dev.tfstate'
-          - task: TerraformTask@5
-            displayName: terraform_fmt
-            inputs:
-              provider: 'azurerm'
-              command: 'custom'
-              workingDirectory: '$(System.DefaultWorkingDirectory)'
-              commandOptions: '-check -recursive'
-              outputTo: 'console'
-              customCommand: 'fmt'
-              environmentServiceNameAzureRM: 'sc-azure-terraform'
-
-          - task: TerraformTask@5
-            displayName: terraform_validate
-            inputs:
-              provider: 'azurerm'
-              command: 'validate'
-              workingDirectory: '$(System.DefaultWorkingDirectory)/environments/dev'
-          
-          - task: TerraformTask@5
 
           - task: TerraformTask@5
             displayName: "Terraform Plan"
