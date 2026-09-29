@@ -33,7 +33,7 @@ stages:
             inputs:
               provider: 'azurerm'
               command: 'custom'
-              workingDirectory: '$(System.DefaultWorkingDirectory)/environments/dev'
+              workingDirectory: '$(System.DefaultWorkingDirectory)'
               commandOptions: '-check -recursive'
               outputTo: 'console'
               customCommand: 'fmt'
