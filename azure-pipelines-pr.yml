@@ -1,4 +1,13 @@
 # Use our self-hosted Windows agent
+# Do not run on normal pushes
+trigger: none
+
+# Run when PR targets main
+pr:
+  branches:
+    include:
+      - main
+
 pool:
   name: sep-agent
 
