@@ -1,6 +1,6 @@
 infra_config = {
   resource_groups = {
-    "ankit-micro-dev-rg" = {
+    "ankit-micro-dev" = {
       location = "East Asia"
       tags     = { Environment = "Dev", ManagedBy = "Terraform" }
     }
