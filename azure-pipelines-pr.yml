@@ -36,6 +36,7 @@ stages:
               backendAzureRmContainerName: 'contstore'
               backendAzureRmKey: 'microservice-infra-dev.tfstate'
 
+
           - task: TerraformTask@5
             displayName: "Terraform Plan"
             inputs:
