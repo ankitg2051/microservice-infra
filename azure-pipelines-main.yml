@@ -1,0 +1,125 @@
+
+trigger:
+  branches:
+    include:
+      - main
+
+pr: none
+
+pool:
+  name: sep-agent
+
+variables:
+  terraformVersion: '1.11.4'
+  workingDirectory: '$(System.DefaultWorkingDirectory)/environments/dev'
+  azureServiceConnection: 'sc-azure-terraform'
+  backendStorageAccount: 'stgsinha'
+  backendContainer: 'contstore'
+  backendKey: 'microservice-infra-dev.tfstate'
+  planArtifactName: 'terraform-plan'
+
+stages:
+
+# Stage 1: Terraform Plan and Approval
+- stage: Terraform_Plan
+  displayName: Terraform Plan and Approval
+
+  jobs:
+  - job: Plan
+    displayName: Initialize and Create Saved Plan
+
+    steps:
+
+    - task: TerraformInstaller@1
+      displayName: Install Terraform
+      inputs:
+        terraformVersion: '$(terraformVersion)'
+
+    - task: TerraformTask@5
+      displayName: Terraform Init
+      inputs:
+        provider: azurerm
+        command: init
+        workingDirectory: '$(workingDirectory)'
+        backendServiceArm: '$(azureServiceConnection)'
+        backendAzureRmStorageAccountName: '$(backendStorageAccount)'
+        backendAzureRmContainerName: '$(backendContainer)'
+        backendAzureRmKey: '$(backendKey)'
+
+    - task: TerraformTask@5
+      displayName: Terraform Plan
+      inputs:
+        provider: azurerm
+        command: plan
+        commandOptions: '-out=tfplan'
+        workingDirectory: '$(workingDirectory)'
+        environmentServiceNameAzureRM: '$(azureServiceConnection)'
+
+    # Publish the saved plan for the next stage
+    - task: PublishPipelineArtifact@1
+      displayName: Publish Terraform Plan Artifact
+      inputs:
+        targetPath: '$(workingDirectory)/tfplan'
+        artifact: '$(planArtifactName)'
+        publishLocation: pipeline
+
+  - job: Approval
+    displayName: Manual Approval
+    dependsOn: Plan
+    pool: server
+    timeoutInMinutes: 1440
+
+    steps:
+    - task: ManualValidation@0
+      displayName: Approve Terraform Deployment
+      timeoutInMinutes: 720
+      inputs:
+        notifyUsers: ''
+        instructions: 'Review the Terraform plan in the Plan job logs, then approve or reject the deployment.'
+        onTimeout: reject
+
+# Stage 2: Apply the Approved Saved Plan
+- stage: Terraform_Apply
+  displayName: Terraform Apply
+  dependsOn: Terraform_Plan
+  condition: succeeded()
+
+  jobs:
+  - job: Apply
+    displayName: Apply Approved Plan
+
+    steps:
+
+    - task: TerraformInstaller@1
+      displayName: Install Terraform
+      inputs:
+        terraformVersion: '$(terraformVersion)'
+
+    - task: TerraformTask@5
+      displayName: Terraform Init
+      inputs:
+        provider: azurerm
+        command: init
+        workingDirectory: '$(workingDirectory)'
+        backendServiceArm: '$(azureServiceConnection)'
+        backendAzureRmStorageAccountName: '$(backendStorageAccount)'
+        backendAzureRmContainerName: '$(backendContainer)'
+        backendAzureRmKey: '$(backendKey)'
+
+    # Download the exact plan created in Stage 1
+    - task: DownloadPipelineArtifact@2
+      displayName: Download Approved Terraform Plan
+      inputs:
+        buildType: current
+        artifactName: '$(planArtifactName)'
+        targetPath: '$(Pipeline.Workspace)/terraform-plan'
+
+    # Apply the saved plan; do not create a new plan here
+    - task: TerraformTask@5
+      displayName: Terraform Apply Saved Plan
+      inputs:
+        provider: azurerm
+        command: apply
+        commandOptions: '$(Pipeline.Workspace)/terraform-plan/tfplan'
+        workingDirectory: '$(workingDirectory)'
+        environmentServiceNameAzureRM: '$(azureServiceConnection)'
