@@ -114,7 +114,7 @@ stages:
         artifactName: '$(planArtifactName)'
         targetPath: '$(Pipeline.Workspace)/terraform-plan'
 
-    # Apply the saved plan; do not create a new plan
+    # Apply the saved plan; do not create a new plan .
     - task: TerraformTask@5
       displayName: Terraform Apply Saved Plan
       inputs:
