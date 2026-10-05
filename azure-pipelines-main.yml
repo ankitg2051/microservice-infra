@@ -1,4 +1,3 @@
-
 trigger:
   branches:
     include:
@@ -13,22 +12,32 @@ variables:
   terraformVersion: '1.11.4'
   workingDirectory: '$(System.DefaultWorkingDirectory)/environments/dev'
   azureServiceConnection: 'sc-azure-terraform'
-  backendStorageAccount: 'stgsinha'
+  backendStorageAccount: 'storegoyal1121'
   backendContainer: 'contstore'
   backendKey: 'microservice-infra-dev.tfstate'
   planArtifactName: 'terraform-plan'
 
 stages:
 
-# Stage 1: Terraform Plan and Approval
+# =========================================================
+# Stage 1: Terraform Plan and Manual Approval
+# =========================================================
+
 - stage: Terraform_Plan
   displayName: Terraform Plan and Approval
 
   jobs:
+
+  # -------------------------------------------------------
+  # Job 1: Terraform Init + Plan
+  # -------------------------------------------------------
+
   - job: Plan
     displayName: Initialize and Create Saved Plan
 
     steps:
+
+    - checkout: self
 
     - task: TerraformInstaller@1
       displayName: Install Terraform
@@ -55,46 +64,69 @@ stages:
         workingDirectory: '$(workingDirectory)'
         environmentServiceNameAzureRM: '$(azureServiceConnection)'
 
-    # Publish the saved plan for the next stage
+    # Publish the exact Terraform plan
+    # so that the Apply job can use the same plan
     - task: PublishPipelineArtifact@1
-      displayName: Publish Terraform Plan Artifact
+      displayName: Publish Terraform Plan
       inputs:
         targetPath: '$(workingDirectory)/tfplan'
         artifact: '$(planArtifactName)'
         publishLocation: pipeline
 
+
+  # -------------------------------------------------------
+  # Job 2: Manual Approval
+  # -------------------------------------------------------
+
   - job: Approval
     displayName: Manual Approval
     dependsOn: Plan
+
+    # ManualValidation must run on server/agentless job
     pool: server
+
     timeoutInMinutes: 1440
 
     steps:
+
     - task: ManualValidation@0
       displayName: Approve Terraform Deployment
       timeoutInMinutes: 720
+
       inputs:
         notifyUsers: ''
-        instructions: 'Review the Terraform plan in the Plan job logs, then approve or reject the deployment.'
+        instructions: |
+          Review the Terraform Plan job output.
+          Approve this deployment if the planned changes are expected.
         onTimeout: reject
 
-# Stage 2: Apply the Approved Saved Plan
+
+# =========================================================
+# Stage 2: Apply Approved Terraform Plan
+# =========================================================
+
 - stage: Terraform_Apply
   displayName: Terraform Apply
+
   dependsOn: Terraform_Plan
   condition: succeeded()
 
   jobs:
+
   - job: Apply
-    displayName: Apply Approved Plan
+    displayName: Apply Approved Terraform Plan
 
     steps:
+
+    - checkout: self
 
     - task: TerraformInstaller@1
       displayName: Install Terraform
       inputs:
         terraformVersion: '$(terraformVersion)'
 
+    # Initialize Terraform again because this is a
+    # separate job with a separate workspace
     - task: TerraformTask@5
       displayName: Terraform Init
       inputs:
@@ -106,17 +138,19 @@ stages:
         backendAzureRmContainerName: '$(backendContainer)'
         backendAzureRmKey: '$(backendKey)'
 
-    # Download the exact plan created in Stage 1
+    # Download the exact tfplan created in Stage 1
     - task: DownloadPipelineArtifact@2
-      displayName: Download Approved Terraform Plan
+      displayName: Download Terraform Plan
       inputs:
         buildType: current
         artifactName: '$(planArtifactName)'
         targetPath: '$(Pipeline.Workspace)/terraform-plan'
 
-    # Apply the saved plan; do not create a new plan .
+    # IMPORTANT:
+    # Do NOT run terraform plan again.
+    # Apply the exact approved plan.
     - task: TerraformTask@5
-      displayName: Terraform Apply Saved Plan
+      displayName: Terraform Apply Approved Plan
       inputs:
         provider: azurerm
         command: apply
