@@ -31,8 +31,8 @@ stages:
               provider: 'azurerm'
               command: 'init'
               workingDirectory: '$(System.DefaultWorkingDirectory)/environments/dev'
-              backendServiceArm: 'sc-azure-terraform'
-              backendAzureRmStorageAccountName: 'storegoyal1121'
+              backendServiceArm: 'azure-service-connection'
+              backendAzureRmStorageAccountName: 'commonstgoct2026'
               backendAzureRmContainerName: 'contstore'
               backendAzureRmKey: 'microservice-infra-dev.tfstate'
 
@@ -43,4 +43,4 @@ stages:
               provider: 'azurerm'
               command: 'plan'
               workingDirectory: '$(System.DefaultWorkingDirectory)/environments/dev'
-              environmentServiceNameAzureRM: 'sc-azure-terraform'
+              environmentServiceNameAzureRM: 'azure-service-connection'

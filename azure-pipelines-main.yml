@@ -11,8 +11,8 @@ pool:
 variables:
   terraformVersion: '1.11.4'
   workingDirectory: '$(System.DefaultWorkingDirectory)/environments/dev'
-  azureServiceConnection: 'sc-azure-terraform'
-  backendStorageAccount: 'storegoyal1121'
+  azureServiceConnection: 'azure-service-connection'
+  backendStorageAccount: 'commonstgoct2026'
   backendContainer: 'contstore'
   backendKey: 'microservice-infra-dev.tfstate'
   planArtifactName: 'terraform-plan'
