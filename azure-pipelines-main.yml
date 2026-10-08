@@ -148,7 +148,7 @@ stages:
 
     # IMPORTANT:
     # Do NOT run terraform plan again.
-    # Apply the exact approved plan.
+    # Apply the exact approved plan..
     - task: TerraformTask@5
       displayName: Terraform Apply Approved Plan
       inputs:
