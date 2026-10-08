@@ -6,8 +6,8 @@ terraform {
     }
   }
   backend "azurerm" {
-    resource_group_name  = "ankit-rg"
-    storage_account_name = "storegoyal1121"
+    resource_group_name  = "Common_RG"
+    storage_account_name = "commonstgoct2026"
     container_name       = "contstore"
     key                  = "microservice-infra-dev.tfstate"
   }
